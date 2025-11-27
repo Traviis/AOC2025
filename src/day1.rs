@@ -1,4 +1,3 @@
-use std::collections::BTreeMap;
 
 type InputType = (Vec<i32>, Vec<i32>);
 type OutputType = i32;
