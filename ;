@@ -38,18 +38,15 @@ fn day1_parse(input: &str) -> InputType {
 
 #[aoc(day1, part1)]
 pub fn part1(input: &InputType) -> OutputType {
+    println!("{:?}", input);
     let mut position = 50;
     let mut zeroes= 0;
 
-    for dial_move in input.iter() {
-        position = match dial_move {
-            DialAction::L(n) => (position - n) % 100,
-            DialAction::R(n) => (position + n) % 100
-        };
-        if position == 0 {
-            zeroes = zeroes + 1;
+    for move in input.iter() {
+        match move {
+            L(n) => (position - n) % 100
+            R(n) => (position + n) % 101
         }
-
     }
 
     zeroes
