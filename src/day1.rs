@@ -1,7 +1,6 @@
 use std::str::FromStr;
 
-use anyhow::{anyhow, Result,Error};
-
+use anyhow::{anyhow, Error, Result};
 
 type InputType = Vec<DialAction>;
 type OutputType = i32;
@@ -9,7 +8,7 @@ type OutputType = i32;
 #[derive(Debug)]
 pub enum DialAction {
     L(i32),
-    R(i32)
+    R(i32),
 }
 
 impl FromStr for DialAction {
@@ -22,7 +21,7 @@ impl FromStr for DialAction {
         match dir {
             'L' => Ok(DialAction::L(numbers)),
             'R' => Ok(DialAction::R(numbers)),
-            _ => return Err(anyhow!("Unknown direction"))
+            _ => return Err(anyhow!("Unknown direction")),
         }
     }
 }
@@ -39,17 +38,16 @@ fn day1_parse(input: &str) -> InputType {
 #[aoc(day1, part1)]
 pub fn part1(input: &InputType) -> OutputType {
     let mut position = 50;
-    let mut zeroes= 0;
+    let mut zeroes = 0;
 
     for dial_move in input.iter() {
         position = match dial_move {
             DialAction::L(n) => (position - n).rem_euclid(100),
-            DialAction::R(n) => (position + n).rem_euclid(100)
+            DialAction::R(n) => (position + n).rem_euclid(100),
         };
         if position == 0 {
             zeroes = zeroes + 1;
         }
-
     }
 
     zeroes
@@ -58,7 +56,7 @@ pub fn part1(input: &InputType) -> OutputType {
 #[aoc(day1, part2)]
 pub fn part2(input: &InputType) -> OutputType {
     let mut position = 50;
-    let mut zero_passes= 0;
+    let mut zero_passes = 0;
 
     for dial_move in input.iter() {
         position = match dial_move {
@@ -68,17 +66,16 @@ pub fn part2(input: &InputType) -> OutputType {
                 // start and end to see if we pass over 0. The logic is simply confusing when you
                 // start at 0 at the start of an instruction
                 let start_gen = (position - 1 as i32).div_euclid(100);
-                let end_gen = (position- n - 1).div_euclid(100);
-                
+                let end_gen = (position - n - 1).div_euclid(100);
+
                 zero_passes += (start_gen - end_gen).abs();
                 (position - n).rem_euclid(100)
-            },
+            }
             DialAction::R(n) => {
                 zero_passes += (position + n) / 100;
                 (position + n).rem_euclid(100)
             }
         };
-
     }
     zero_passes
 }
