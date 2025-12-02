@@ -1,6 +1,7 @@
 use std::str::FromStr;
 
 use anyhow::{Result, anyhow};
+use itertools::Itertools;
 
 type InputType = Vec<Range>;
 type OutputType = u64;
@@ -32,10 +33,39 @@ fn is_number_repeating(n: u64) -> bool {
     s[0..half] == s[half..]
 }
 
+fn is_number_repeating_part2(n: u64) -> bool {
+    //Now we repeat if it's any sequance that's repeated.
+    let s = n.to_string();
+    let half = s.len() / 2;
+    // Let's go ahead and just scan the number, starting with a length of 1, seeing if it repeats,
+    // and then going to 2, you can stop at half, since if you got that far, and you don't have a
+    // repeat, you can't
+
+    for idx in 0..half {
+        let can_len = idx + 1;
+        let candidate = s.chars().take(can_len).collect::<Vec<_>>();
+        if s.chars()
+            .chunks(can_len)
+            .into_iter()
+            .all(|x| x.collect::<Vec<_>>() == candidate.as_slice())
+        {
+            return true;
+        }
+    }
+
+    false
+}
+
 impl Range {
-    fn find_invalid(&self) -> Vec<u64> {
+    fn find_invalid(&self, part2: bool) -> Vec<u64> {
         (self.lower..=self.upper)
-            .filter(|x| is_number_repeating(*x))
+            .filter(|x| {
+                if !part2 {
+                    is_number_repeating(*x)
+                } else {
+                    is_number_repeating_part2(*x)
+                }
+            })
             .collect::<Vec<_>>()
     }
 }
@@ -53,13 +83,16 @@ fn day2_parse(input: &str) -> InputType {
 pub fn part1(input: &InputType) -> OutputType {
     input
         .iter()
-        .map(|x| x.find_invalid().into_iter().sum::<u64>())
+        .map(|x| x.find_invalid(false).into_iter().sum::<u64>())
         .sum::<u64>()
 }
 
 #[aoc(day2, part2)]
 pub fn part2(input: &InputType) -> OutputType {
-    todo!();
+    input
+        .iter()
+        .map(|x| x.find_invalid(true).into_iter().sum::<u64>())
+        .sum::<u64>()
 }
 
 #[cfg(test)]
@@ -77,7 +110,7 @@ mod tests {
             lower: 11,
             upper: 22,
         };
-        assert_eq!(range.find_invalid().len(), 2);
+        assert_eq!(range.find_invalid(false).len(), 2);
     }
 
     #[test]
@@ -87,6 +120,6 @@ mod tests {
 
     #[test]
     fn day2_part2() {
-        assert_eq!(part2(&day2_parse(get_test_input())), 0);
+        assert_eq!(part2(&day2_parse(get_test_input())), 4174379265);
     }
 }
