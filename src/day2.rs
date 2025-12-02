@@ -1,13 +1,12 @@
 use std::str::FromStr;
 
 use anyhow::{Result, anyhow};
-use itertools::Itertools;
 
 type InputType = Vec<Range>;
 type OutputType = u64;
 
 #[derive(Clone)]
-struct Range {
+pub struct Range {
     lower: u64,
     upper: u64,
 }
@@ -84,7 +83,7 @@ impl Range {
 fn day2_parse(input: &str) -> InputType {
     input
         .split(",")
-        .map(|x| Range::from_str(x))
+        .map(Range::from_str)
         .collect::<Result<Vec<Range>>>()
         .unwrap()
 }

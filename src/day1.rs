@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use anyhow::{anyhow, Error, Result};
+use anyhow::{anyhow, Result};
 
 type InputType = Vec<DialAction>;
 type OutputType = i32;
@@ -21,7 +21,7 @@ impl FromStr for DialAction {
         match dir {
             'L' => Ok(DialAction::L(numbers)),
             'R' => Ok(DialAction::R(numbers)),
-            _ => return Err(anyhow!("Unknown direction")),
+            _ => Err(anyhow!("Unknown direction")),
         }
     }
 }
@@ -30,7 +30,7 @@ impl FromStr for DialAction {
 fn day1_parse(input: &str) -> InputType {
     input
         .lines()
-        .map(|line| DialAction::from_str(line))
+        .map(DialAction::from_str)
         .collect::<Result<Vec<_>>>()
         .expect("Failed to parse")
 }
@@ -46,7 +46,7 @@ pub fn part1(input: &InputType) -> OutputType {
             DialAction::R(n) => (position + n).rem_euclid(100),
         };
         if position == 0 {
-            zeroes = zeroes + 1;
+            zeroes += 1;
         }
     }
 
@@ -65,7 +65,7 @@ pub fn part2(input: &InputType) -> OutputType {
                 // case where we are starting at 0, and we take -1 from the position from both the
                 // start and end to see if we pass over 0. The logic is simply confusing when you
                 // start at 0 at the start of an instruction
-                let start_gen = (position - 1 as i32).div_euclid(100);
+                let start_gen = (position - 1_i32).div_euclid(100);
                 let end_gen = (position - n - 1).div_euclid(100);
 
                 zero_passes += (start_gen - end_gen).abs();
