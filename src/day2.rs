@@ -1,6 +1,7 @@
 use std::str::FromStr;
 
 use anyhow::{Result, anyhow};
+use regex::Regex;
 
 type InputType = Vec<Range>;
 type OutputType = u64;
@@ -104,6 +105,28 @@ pub fn part2(input: &InputType) -> OutputType {
         .sum::<u64>()
 }
 
+#[aoc(day2, part2, regex)]
+pub fn part2_regex(input: &InputType) -> OutputType {
+    // Regular regex crate doesn't support backreferences Also, the conversion to a number is
+    // actually a bad thing in all of these cases, since they are "numbers" but we are really not
+    // treating them like so (other than to add them up at the end). An optimization across all of
+    // this would be to use simply the raw &str, but this works, and I don't need to optimize it
+    // that far.
+
+    let reg = fancy_regex::Regex::new(r"^(\d+)\1+$").unwrap();
+
+    let mut total = 0;
+    for range in input.iter() {
+        for n in range.lower..=range.upper {
+            if reg.is_match(&n.to_string()).unwrap() {
+                total += n;
+            }
+        }
+    }
+
+    total
+}
+
 #[cfg(test)]
 mod tests {
 
@@ -130,5 +153,10 @@ mod tests {
     #[test]
     fn day2_part2() {
         assert_eq!(part2(&day2_parse(get_test_input())), 4174379265);
+    }
+
+    #[test]
+    fn day2_part2_regex() {
+        assert_eq!(part2_regex(&day2_parse(get_test_input())), 4174379265);
     }
 }
