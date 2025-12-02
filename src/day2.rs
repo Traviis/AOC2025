@@ -36,19 +36,29 @@ fn is_number_repeating(n: u64) -> bool {
 fn is_number_repeating_part2(n: u64) -> bool {
     //Now we repeat if it's any sequance that's repeated.
     let s = n.to_string();
+    let bytes = s.as_bytes();
+    let len = s.len();
     let half = s.len() / 2;
+
     // Let's go ahead and just scan the number, starting with a length of 1, seeing if it repeats,
     // and then going to 2, you can stop at half, since if you got that far, and you don't have a
     // repeat, you can't
 
     for idx in 0..half {
         let can_len = idx + 1;
-        let candidate = s.chars().take(can_len).collect::<Vec<_>>();
-        if s.chars()
-            .chunks(can_len)
-            .into_iter()
-            .all(|x| x.collect::<Vec<_>>() == candidate.as_slice())
-        {
+        // Some optimizations:
+        // Use raw bytes instead of converting to strings or anything like that
+        // (This assumes that everything is ASCII, and not UTF-8 multi-byte, a safe assumption for
+        // a bunch of numbers)
+
+        if !len.is_multiple_of(can_len) {
+            // Since we also require that the chunk size all be used by the pattern, if you're not
+            // cleanly divisible, there is no point in testing it
+            continue;
+        }
+
+        let first_chunk = &bytes[0..can_len];
+        if bytes.chunks(can_len).all(|c| c == first_chunk) {
             return true;
         }
     }
