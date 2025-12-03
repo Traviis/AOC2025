@@ -37,8 +37,60 @@ fn max_joltage(bank: &Bank) -> u64 {
     panic!("Didn't find max joltage in bank");
 }
 
+fn calculate_joltage_part_2(bank: &Bank, indexes: &Vec<usize>) -> u64 {
+    let mut res = 0;
+    // Find this value by taking the index of the number, and multipling that by 10^length of
+    // string remaining.
+    for inv_mag in 1..=12 {
+        let value = bank[indexes[inv_mag - 1]];
+        let mag_mult = 10u64.pow((12 - inv_mag) as u32);
+        res += value as usize * mag_mult as usize;
+    }
+    return res as u64;
+}
+
 fn max_joltage_part_2(bank: &Bank) -> u64 {
-    0
+    let mut chosen_indexes = Vec::<usize>::new();
+
+    //Build vector until we have enough indexes
+    while chosen_indexes.len() < 12 {
+        //Start at the next spot from the last found index
+        let start_search_at = chosen_indexes.last().map_or(0, |&i| i + 1);
+        let mut found_in_step = false;
+
+        // Starting with 9, find the biggest number
+        for n in (1..=9).rev() {
+            let n = n as u8;
+
+            // Now that we have n, look through the bank (from the start) and try to find the
+            // number
+            let found_n_idx = match bank[start_search_at..].iter().position(|&x| x == n) {
+                Some(rel_idx) => start_search_at + rel_idx,
+                None => continue, // Number not found, try next n
+            };
+
+            // The logic here is you can only use that found_n if you have characters available
+            // (enough to finish). The remaining needed is given by (requested_len -
+            // chosen_indexes.len() - 1) and the characters available (if you were to use this
+            // n) = (bank.len() - found_n - 1), found_n being the candidate index
+            let remaining_needed = 12 - chosen_indexes.len() - 1;
+            let remaining_available = bank.len() - found_n_idx - 1;
+
+            // We can do this, because since they are power of 10 each slot, it is always the
+            // correct move to get the biggest n as long as there is space left over to finish
+            if remaining_needed <= remaining_available {
+                chosen_indexes.push(found_n_idx);
+                found_in_step = true;
+                break; // Stop searching for n, go back to the while loop
+            }
+        }
+
+        if !found_in_step {
+            panic!("Could not find a valid number to continue sequence");
+        }
+    }
+
+    return calculate_joltage_part_2(bank, &chosen_indexes);
 }
 
 #[aoc(day3, part1)]
@@ -69,6 +121,18 @@ mod tests {
     #[test]
     fn day3_part1() {
         assert_eq!(part1(&day3_parse(get_test_input())), 357);
+    }
+
+    #[test]
+    fn day3_calc_jolt_part2() {
+        let bank: Bank = vec![9, 8, 7, 6, 5, 4, 3, 2, 1, 1, 1, 1, 1, 1, 1];
+        let indexes = vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+        assert_eq!(calculate_joltage_part_2(&bank, &indexes), 987654321111);
+    }
+    #[test]
+    fn day3_part2_max() {
+        let bank: Bank = vec![8, 1, 8, 1, 8, 1, 9, 1, 1, 1, 1, 2, 1, 1, 1];
+        assert_eq!(max_joltage_part_2(&bank), 888911112111);
     }
 
     #[test]
