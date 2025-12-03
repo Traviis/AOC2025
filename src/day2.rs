@@ -1,7 +1,6 @@
 use std::str::FromStr;
 
 use anyhow::{Result, anyhow};
-use regex::Regex;
 
 type InputType = Vec<Range>;
 type OutputType = u64;
