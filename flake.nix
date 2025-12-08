@@ -21,7 +21,7 @@
         # Base arguments for crane
         crateArgs = {
           src = craneLib.cleanCargoSource ./.;
-          nativeBuildInputs = [ pkgs.pkg-config pkgs.cargo-nextest pkgs.tzdata ];
+          nativeBuildInputs = [ pkgs.pkg-config pkgs.cargo-nextest pkgs.tzdata rustVersion ];
           buildInputs = [ pkgs.openssl pkgs.cacert ];
         };
 
@@ -112,8 +112,7 @@
         devShells.default = pkgs.mkShell {
           nativeBuildInputs = [ pkgs.pkg-config ];
           buildInputs = [
-            (rustVersion.override { extensions = [ "rust-src" "rustfmt" "clippy" ]; })
-            pkgs.rust-analyzer
+            (rustVersion.override { extensions = [ "rust-src" "rustfmt" "clippy" "rust-analyzer" ]; })
             pkgs.cargo-nextest
             pkgs.iconv
             pkgs.openssl
