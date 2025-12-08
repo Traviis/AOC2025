@@ -1,5 +1,5 @@
-use std::{fmt, str::FromStr};
 use anyhow::Result;
+use std::{fmt, str::FromStr};
 
 type InputType = Vec<Problem>;
 type OutputType = i64;
@@ -12,8 +12,8 @@ enum Op {
 }
 
 struct Problem {
-   op: Op,
-   nums: Vec<i64>
+    op: Op,
+    nums: Vec<i64>,
 }
 
 impl FromStr for Op {
@@ -31,18 +31,17 @@ impl FromStr for Op {
 impl ToString for Op {
     fn to_string(&self) -> String {
         match self {
-            Op::Mult => "*".to_string(), 
+            Op::Mult => "*".to_string(),
             Op::Add => "+".to_string(),
             Op::Unknown => "?".to_string(),
         }
     }
 }
 
-
 impl fmt::Display for Problem {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         Ok(for n in self.nums.iter() {
-            write!(f, "{} {}",n, self.op.to_string());
+            write!(f, "{} {}", n, self.op.to_string());
         })
     }
 }
@@ -54,13 +53,11 @@ impl Problem {
             Op::Add => 0,
             Op::Unknown => panic!("Unknown op"),
         };
-        self.nums.iter().fold(init_value, |acc,v| 
-            match self.op {
+        self.nums.iter().fold(init_value, |acc, v| match self.op {
             Op::Mult => acc * v,
             Op::Add => acc + v,
             _ => panic!("Bad op"),
-            }
-            )
+        })
     }
 
     fn execute_part2(&self) -> i64 {
@@ -81,10 +78,10 @@ impl Problem {
         let mut new_nums = Vec::new();
         for idx in 1..=max_len {
             //Going from the max_len, down to length , grab the idx of each string (or nothing)
-            println!("idx {}",idx);
-            let mut con_num : Vec<char> = Vec::new();
+            println!("idx {}", idx);
+            let mut con_num: Vec<char> = Vec::new();
             for sn in str_nums.iter() {
-                if let Some(c) = sn.chars().rev().nth(idx-1) {
+                if let Some(c) = sn.chars().rev().nth(idx - 1) {
                     con_num.push(c);
                 }
             }
@@ -95,23 +92,27 @@ impl Problem {
         }
 
         // Be lazy
-        Problem{ op : self.op.clone(), nums: new_nums }.execute()
-
+        Problem {
+            op: self.op.clone(),
+            nums: new_nums,
+        }
+        .execute()
     }
 }
 
-
 #[aoc_generator(day6)]
 fn day6_parse(input: &str) -> InputType {
-
     let mut probs = Vec::new();
     //This is just really complicated Parsing
-    for (line_num,line) in input.lines().enumerate() {
+    for (line_num, line) in input.lines().enumerate() {
         for (prob_num, item) in line.split_whitespace().enumerate() {
             let prob = match probs.get_mut(prob_num) {
                 Some(prob) => prob,
                 None => {
-                    probs.push(Problem{op: Op::Unknown, nums: vec!()});
+                    probs.push(Problem {
+                        op: Op::Unknown,
+                        nums: vec![],
+                    });
                     probs.last_mut().unwrap()
                 }
             };
@@ -121,9 +122,8 @@ fn day6_parse(input: &str) -> InputType {
             } else if let Ok(op) = Op::from_str(item) {
                 prob.op = op;
             } else {
-                panic!("Unparsable {:?}",item);
+                panic!("Unparsable {:?}", item);
             }
-
         }
     }
     probs
@@ -163,10 +163,24 @@ mod tests {
 
     #[test]
     fn day6_part2_simple() {
-        assert_eq!(Problem{ nums: vec!(64,23,314), op: Op::Add}.execute_part2(), 1058);
+        assert_eq!(
+            Problem {
+                nums: vec!(64, 23, 314),
+                op: Op::Add
+            }
+            .execute_part2(),
+            1058
+        );
     }
     #[test]
     fn day6_part2_simple2() {
-        assert_eq!(Problem{ nums: vec!(123,45,6), op: Op::Mult}.execute_part2(), 8544);
+        assert_eq!(
+            Problem {
+                nums: vec!(123, 45, 6),
+                op: Op::Mult
+            }
+            .execute_part2(),
+            8544
+        );
     }
 }

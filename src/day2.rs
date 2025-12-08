@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 
 type InputType = Vec<Range>;
 type OutputType = u64;
