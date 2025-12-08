@@ -48,7 +48,25 @@ pub fn part1(input: &InputType) -> OutputType {
 
 #[aoc(day5, part2)]
 pub fn part2(input: &InputType) -> OutputType {
-    todo!();
+    //We obviously don't want to just try every single value So we need to combine, all the ranges
+    //as they may overlap; Since we know they're contigious on a range, we can start combining
+    //ranges until we cannot combine anymore. You can combine iff the start of another range is <=
+    //the top end of the range in question
+    let (mut ranges,_) = input.clone();
+    ranges.sort_unstable_by_key(|x| x.0);
+    let mut merged: Vec<(u64,u64)>  = Vec::new();
+    for (start,end) in ranges {
+        if merged.is_empty() || start > merged.last().unwrap().1 {
+            merged.push((start,end));
+        } else {
+            let last = merged.last_mut().unwrap();
+            //The range can be fully enclosed, so find the max of the two, we don't want to trim off
+            last.1 = last.1.max(end);
+        }
+
+    }
+    merged.into_iter().map(|(l,h)| h - l + 1).sum()
+
 }
 
 #[cfg(test)]
@@ -77,6 +95,6 @@ mod tests {
 
     #[test]
     fn day5_part2() {
-        assert_eq!(part2(&day5_parse(get_test_input())), 0);
+        assert_eq!(part2(&day5_parse(get_test_input())), 14);
     }
 }
