@@ -16,11 +16,6 @@ struct Problem {
     nums: Vec<i64>,
 }
 
-struct Problem2 {
-    op: Op,
-    nums: Vec<String>,
-}
-
 impl FromStr for Op {
     type Err = anyhow::Error;
 
@@ -64,110 +59,82 @@ impl Problem {
             _ => panic!("Bad op"),
         })
     }
-
 }
 
-impl Problem2 {
+#[aoc_generator(day6, part2)]
+fn day6_parse_part2(input: &str) -> InputType {
+    //Ok, we really should treat this like a grid, instead of numbers Construct lines as an (y,x)
+    //=> char (This is a dense map, so use Vec<Vec<_>> instead of a HashMap
+    let lines: Vec<Vec<char>> = input.lines().map(|l| l.chars().collect()).collect();
+    let height = lines.len();
+    let width = lines.iter().map(|l| l.len()).max().unwrap_or(0);
+    //Width is the maximum number of characters in any line
 
-    fn execute(&self) -> i64 {
-        //Ok, so the numbers are all parsed correctly, however, we need to rejigger things a bit
-        //for part 2
+    let mut problems = Vec::new();
+    let mut current_chunk = Vec::new();
 
-        // We can ignore outside of the problem (the text goes right-to-left for the whole set of
-        // problems, but that's irrelevant since we are summing at the end
+    for x in 0..width {
+        //Get the vertical column by going through the height.
+        // This is the magic, grab an entire column by checking each line, and seeing if there
+        // exists at the x a value, this also grabs the operation as well as the spaces
+        let col: Vec<char> = (0..height)
+            .map(|y| {
+                lines
+                    .get(y)
+                    .and_then(|row| row.get(x))
+                    .copied()
+                    .unwrap_or(' ')
+            })
+            .collect();
 
-        // 64
-        // 23
-        // 314
-        // +
-        // This now equals 4 + 431 + 632
-        //Let's parse each number to a string, then, in order
-        let str_nums = self.nums.iter().map(|n| n.to_string()).collect::<Vec<_>>();
-        let max_len = str_nums.iter().map(|x| x.len()).max().unwrap();
-        let mut new_nums = Vec::new();
-        for idx in 1..=max_len {
-            //Going from the max_len, down to length , grab the idx of each string (or nothing)
-            println!("idx {}", idx);
-            let mut con_num: Vec<char> = Vec::new();
-            for sn in str_nums.iter() {
-                if let Some(c) = sn.chars().rev().nth(idx - 1) {
-                    con_num.push(c);
-                }
+        //Let's now check if the column is all whitespace or not, if it is, there isn't a chunk
+        //here, so cap off with what we have
+        if col.iter().all(|c| c.is_whitespace()) {
+            if !current_chunk.is_empty() {
+                problems.push(parse_chunk(&current_chunk));
+                current_chunk.clear();
             }
-            println!("{:?}", con_num);
-            if con_num.len() > 0 {
-                new_nums.push(con_num.iter().collect::<String>().parse::<i64>().unwrap());
-            }
+        } else {
+            //If it's not all whitespace, let's go ahead and just push the col to the current_chunk
+            current_chunk.push(col);
         }
-
-        // Be lazy
-        Problem {
-            op: self.op.clone(),
-            nums: new_nums,
-        }
-        .execute()
     }
+
+    //Handle final column
+    if !current_chunk.is_empty() {
+        problems.push(parse_chunk(&current_chunk));
+    }
+
+    problems
 }
 
-#[aoc_generator(day6,part2)]
-fn day6_parse_part2(input: &str) -> Vec<Problem2> {
-    let mut probs = Vec::new();
-    //This is just really complicated Parsing
-    for (line_num, line) in input.lines().enumerate() {
-        let mut prob_idx = 0;
-        let mut current_num = Vec::new();
-        let mut parsing_num= true;
+fn parse_chunk(cols: &[Vec<char>]) -> Problem {
+    let mut op = Op::Unknown;
+    let mut nums = Vec::new();
 
-        let mut number_strings = Vec::new();
-        for c in line.chars() {
-            if c == ' ' {
-                //We have encountered a space, if we are parsing a number, let's push that number,
-                if parsing_num {
-                    prob_idx += 1;
-                    let c_num = current_num.iter().collect::<String>();
-                    println!("Saw string '{}'",c_num);
-                    number_strings.push(c_num);
-                    parsing_num = false;
-                    current_num.clear();
-                    continue;
-                } else {
-                    //On subsequent passes, you may be parsing leading spaces, continue to parse
-                }
+    for (idx, col) in cols.iter().enumerate() {
+        //We know that all the operators are left aligned and will show up in the left most column
+        if idx == 0 {
+            match col.iter().last().unwrap() {
+                '*' => op = Op::Mult,
+                '+' => op = Op::Add,
+                _ => panic!("Unknown op"),
             }
-
-            if c.is_digit(10) && !parsing_num {
-                parsing_num = true;
-            }
-            current_num.push(c);
-
-
         }
 
-        // for (prob_num, item) in line.split_whitespace().enumerate() {
-        //     let prob = match probs.get_mut(prob_num) {
-        //         Some(prob) => prob,
-        //         None => {
-        //             probs.push(Problem {
-        //                 op: Op::Unknown,
-        //                 nums: vec![],
-        //             });
-        //             probs.last_mut().unwrap()
-        //         }
-        //     };
-
-        //     if let Ok(n) = item.parse::<i64>() {
-        //         prob.nums.push(n);
-        //     } else if let Ok(op) = Op::from_str(item) {
-        //         prob.op = op;
-        //     } else {
-        //         panic!("Unparsable {:?}", item);
-        //     }
-        // }
+        //Filter all the digits then just jam them together; easier than bothering with special
+        //logic for whitespace and operator
+        let num_str: String = col.iter().filter(|c| c.is_digit(10)).collect();
+        if !num_str.is_empty() {
+            nums.push(num_str.parse::<i64>().unwrap());
+        }
     }
-    probs
+
+    Problem { op, nums }
 }
-#[aoc_generator(day6,part1)]
-fn day6_parse(input: &str) -> Vec<Problem> {
+
+#[aoc_generator(day6, part1)]
+fn day6_parse(input: &str) -> InputType {
     let mut probs = Vec::new();
     //This is just really complicated Parsing
     for (line_num, line) in input.lines().enumerate() {
@@ -201,7 +168,7 @@ pub fn part1(input: &InputType) -> OutputType {
 }
 
 #[aoc(day6, part2)]
-pub fn part2(input: &Vec<Problem2>) -> OutputType {
+pub fn part2(input: &Vec<Problem>) -> OutputType {
     input.iter().map(|p| p.execute()).sum()
 }
 
@@ -226,5 +193,4 @@ mod tests {
     fn day6_part2() {
         assert_eq!(part2(&day6_parse_part2(get_test_input())), 3263827);
     }
-
 }
