@@ -4,6 +4,7 @@ use anyhow::Result;
 type InputType = Vec<Problem>;
 type OutputType = i64;
 
+#[derive(Clone)]
 enum Op {
     Mult,
     Add,
@@ -61,6 +62,42 @@ impl Problem {
             }
             )
     }
+
+    fn execute_part2(&self) -> i64 {
+        //Ok, so the numbers are all parsed correctly, however, we need to rejigger things a bit
+        //for part 2
+
+        // We can ignore outside of the problem (the text goes right-to-left for the whole set of
+        // problems, but that's irrelevant since we are summing at the end
+
+        // 64
+        // 23
+        // 314
+        // +
+        // This now equals 4 + 431 + 632
+        //Let's parse each number to a string, then, in order
+        let str_nums = self.nums.iter().map(|n| n.to_string()).collect::<Vec<_>>();
+        let max_len = str_nums.iter().map(|x| x.len()).max().unwrap();
+        let mut new_nums = Vec::new();
+        for idx in 1..=max_len {
+            //Going from the max_len, down to length , grab the idx of each string (or nothing)
+            println!("idx {}",idx);
+            let mut con_num : Vec<char> = Vec::new();
+            for sn in str_nums.iter() {
+                if let Some(c) = sn.chars().rev().nth(idx-1) {
+                    con_num.push(c);
+                }
+            }
+            println!("{:?}", con_num);
+            if con_num.len() > 0 {
+                new_nums.push(con_num.iter().collect::<String>().parse::<i64>().unwrap());
+            }
+        }
+
+        // Be lazy
+        Problem{ op : self.op.clone(), nums: new_nums }.execute()
+
+    }
 }
 
 
@@ -99,7 +136,7 @@ pub fn part1(input: &InputType) -> OutputType {
 
 #[aoc(day6, part2)]
 pub fn part2(input: &InputType) -> OutputType {
-    todo!();
+    input.iter().map(|p| p.execute_part2()).sum()
 }
 
 #[cfg(test)]
@@ -121,6 +158,15 @@ mod tests {
 
     #[test]
     fn day6_part2() {
-        assert_eq!(part2(&day6_parse(get_test_input())), 0);
+        assert_eq!(part2(&day6_parse(get_test_input())), 3263827);
+    }
+
+    #[test]
+    fn day6_part2_simple() {
+        assert_eq!(Problem{ nums: vec!(64,23,314), op: Op::Add}.execute_part2(), 1058);
+    }
+    #[test]
+    fn day6_part2_simple2() {
+        assert_eq!(Problem{ nums: vec!(123,45,6), op: Op::Mult}.execute_part2(), 8544);
     }
 }
